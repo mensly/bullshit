@@ -7,21 +7,23 @@ from datetime import date, timedelta
 from ..common import choose_from, choose_uniq, sentence_case, ing_to_ed, an
 from .wordlist import wordlist
 
-def generate(dirty=False):
+def generate(dirty=False, mood=None, length=None, include_date=None):
 	"""Generate a three to four sentence horoscope."""
-	# Pick a mood (usually positive)
-	mood = "good" if random.random() <= 0.8 else "bad"
+	# Pick a mood (usually positive) if not specified
+	mood = mood or ("good" if random.random() <= 0.8 else "bad")
 
 	discussion_s = choose_from([relationship_s, encounter_s])
 	sentences = [feeling_statement_s, cosmic_implication_s, warning_s, discussion_s]
 
-	# Select 2 or 3 sentences
-	k = random.randint(2, 3)
+	if length != None and not 0 < length <= len(sentences):
+		raise ValueError("length must be between 1 and {} sentences".format(len(sentences)))
+	# Select 2 or 3 sentences if length not specified
+	k = length or random.randint(2, 3)
 	sentences = random.sample(sentences, k)
 	final_text = " ".join([sentence(mood, dirty) for sentence in sentences])
 
 	# Optionally add a date prediction
-	if random.random() <= 0.5 and k == 2:
+	if include_date or (include_date == None and random.random() <= 0.5 and k < 3):
 		final_text += " " + date_prediction_s(mood, dirty)
 
 	return final_text
